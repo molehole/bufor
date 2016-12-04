@@ -1,0 +1,21 @@
+przekaz:
+	dodanie numeru wozka do tablicy Wozki
+	dordajnie statusu na szwalni jako True
+
+informacje_tury:
+	sprawdzenie_ilosci Ta w Turze i tych ze statusem np szwalnia True (wysietla liste TA z zielonymi if True i iloscia na ilosc)
+
+Status:
+	Pokazuje dla danego TA ile pozostalo w zamowieniu lub czy skonczone:
+		Zakonczone
+		Nie zeskanowane
+		Zeskoanowane 2/3
+
+
+Stolarnia
+	
+Przekazanie:
+	dodanie numeru pola
+	dopisenia do talicy statusu True dla Statusu stolarnii
+
+

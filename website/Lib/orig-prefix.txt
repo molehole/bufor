@@ -1,0 +1,1 @@
+c:\programdata\chocolatey\lib\python3\tools
