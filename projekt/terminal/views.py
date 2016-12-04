@@ -7,70 +7,45 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
-def szwalnia_index(request):
-	return render(request, 'terminal/szwalnia/index.html', {})
-
+@csrf_exempt
 def szwalnia_przekaz(request):
-	return render(request, 'terminal/szwalnia/przekaz.html', {})
-
-def szwalnia_sprawdzenie(request):
-	return render(request, 'terminal/szwalnia/wyszukaj.html', {})
-
-def szwalnia_przekazanie_f(request):
-	nr_wozka = int(request.POST['wozek'])
-	nr_etykiety = int(request.POST['etykieta'])
 	try:
+		nr_wozka = int(request.POST['wozek'])
+		nr_etykiety = int(request.POST['etykieta'])
 		Etyk = Etykieta.objects.get(nr = nr_etykiety)
 	except Exception as e:
-		return render(request, 'terminal/szwalnia/przekaz.html', context_dict = {'error': True})
+		return render(request, 'terminal/szwalnia/przekaz.html', {'error': True,
+														'message': 'Niepoprawne dane!'})
 
-	T = Etyk.ta
-	w = Wozek(ta = T, wozek = nr_wozka)	
+	T = Etyk.ta	
 	s = Status.objects.get(ta = T)
-	s.szwalnia_ilosc -= 1
-	if s.szwalnia_ilosc == 0:
-		T.zakonczone = True
-	w.save()
-	s.save()
-	T.save()
-	context_dict = {
-	'wozek': nr_wozka,
-	'ta': T.nr,
-	'message_variable': True
-	}
-	return render(request, 'terminal/szwalnia/przekaz.html', context_dict)
+	if T.zakonczone == True:
+		return render(request, 'terminal/szwalnia/przekaz.html', {'error': True,
+														'message': 'Zlecenie zostalo juz zakończone'})
+	else:
+		w = Wozek(ta = T, wozek = nr_wozka)	
+		s.szwalnia_ilosc -= 1
+		if s.szwalnia_ilosc == 0:
+			T.zakonczone = True
+		w.save()
+		s.save()
+		T.save()
+		message_string = 'Dodano %s na wózek %s' % (T.nr, nr_wozka)
+		context_dict = {
+		'success': True,
+		'message': message_string, 
+		}
+		return render(request, 'terminal/szwalnia/przekaz.html', context_dict)
 
-def szwalnia_sprawdzenie_f(request):
-	nr_etykiety = int(request.POST['etykieta'])
-	E = Etykieta.objects.get(nr = nr_etykiety)
-	try:
-		wozek = E.ta.wozek_set.all()
-	except Exception as e:
-		wozek = "BRAK"
-	try:
-		pole = E.ta.pola_set.all()
-	except Exception as e:
-		pole = "BRAK"
-	context_dict = {
-	'nr': E.nr,
-	'ta': E.ta,
-	'tura': E.ta.tura.nr,
-	'elementy': E.ta.etykieta_set.all(),
-	'ilosci_szwalnia': E.ta.status_set.all().first().szwalnia_ilosc,
-	'ilosci_stolarnia': E.ta.status_set.all().first().stolarnia_ilosc,
-	'wozki': wozek,
-	'pola': pole,
-	'message_variable': True,
-	}
-	return render(request, 'terminal/szwalnia/szczegoly.html', context_dict)
 
-def informacje_index(request):
+
+def szwalnia_status(request):
 	if not request.POST:
-		return render(request, 'terminal/informacje/index.html', {})
+		return render(request, 'terminal/szwalnia/status.html', {})
 	try:
 		nowa_data = datetime.strptime(request.POST['nowa_data'],'%d.%m.%Y')
 	except ValueError as e:
-		return render(request, 'terminal/informacje/index.html', {'alert': "NIE POPRAWNA DATA!"})
+		return render(request, 'terminal/szwalnia/status.html', {'alert': "NIE POPRAWNA DATA!"})
 	kolejnosc = Kolejnosc.objects.filter(data = nowa_data.strftime('%Y-%m-%d'))
 	lista_kolejnosci = []
 	lista_dat = []
@@ -87,7 +62,7 @@ def informacje_index(request):
 		'tury': lista_kolejnosci,
 		'wybrana_data':  nowa_data.strftime('%d.%m.%Y'),
 	}
-	return render(request, 'terminal/informacje/index.html', context_dict)
+	return render(request, 'terminal/szwalnia/status.html', context_dict)
 # ---------------------------------------------------------------------------
 @csrf_exempt
 def Testowa(request):

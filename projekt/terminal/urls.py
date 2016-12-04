@@ -17,11 +17,7 @@ from django.conf.urls import url, include
 from terminal import views
 
 urlpatterns = [
-    url(r'^szwalnia/$', views.szwalnia_index, name='szwalnia_index'),
+    url(r'^szwalnia/status/$', views.szwalnia_status, name='szwalnia_status'),
     url(r'^szwalnia/przekaz/$', views.szwalnia_przekaz, name='szwalnia_przekaz'),
-    url(r'^szwalnia/przekaz/szwalnia_przekazanie_f$', views.szwalnia_przekazanie_f, name='szwalnia_przekazanie_f'),
-    url(r'^szwalnia/wyszukaj/$', views.szwalnia_sprawdzenie, name='szwalnia_wyszukaj'),
-    url(r'^szwalnia/szwalnia_sprawdzenie_f/$', views.szwalnia_sprawdzenie_f, name='szwalnia_sprawdzenie_f'),    
-    url(r'^informacje/$', views.informacje_index, name='informacje_index'),    
     url(r'^testowa/$', views.Testowa, name='strona_testowa_index'),
 ]
