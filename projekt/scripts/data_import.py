@@ -5,9 +5,8 @@ import csv
 from stat import S_ISREG, ST_CTIME, ST_MODE
 import os
 from datetime import datetime
-from terminal.models import Etykieta, Status
+from terminal.models import Etykieta, Status, Tura, TA
 from django.db.models import Count
-
 
 # Timer
 start_time = time.time()
@@ -22,7 +21,6 @@ etykieta = '\^XF\S+.ZPL(.*?)\^FX End of job'
 
 tablica_etykiet = []
 tablica_kontrolna = []
-tablica_ta = []
 
 main_path = '//jan-svr-nas01/domowy/Labeo/Planowanie/TXT/'
 
@@ -59,22 +57,6 @@ class Etykieta_txt():
         self.elementy = elementy
         self.element = element
         self.ilosc = ilosc
-
-# Funkcja do wyswietlania i sprawdzania dancyh etykiet
-def pokazInformacje(Etykieta):
-    print("""
-Etykieta %s:
-------------
-TA: %s
-TURA: %s
-POZYCJA: %s
-DATA: %s
-ILOŚĆ: %s
-ELEMENT: %s
-ELEMENTY:
-    """ % (Etykieta.nr, Etykieta.ta, Etykieta.tura, Etykieta.pozycja, datetime.strftime(Etykieta.data, '%d-%m-%Y'), Etykieta.ilosc, Etykieta.element))
-    for i in Etykieta.elementy:
-        print("*  ", i)
 
 
 def czytajPlikEtykiet(plik):
@@ -130,51 +112,42 @@ def wyszukajPlikiPoDacie(sciezka):
     return entries
 
 def dodaDoBazyDanych(etykieta):
-    if not Etykieta.objects.filter(nr = etykieta.nr):
-        e = Etykieta(nr = etykieta.nr,
-                 ta = etykieta.ta,                 tura = etykieta.tura,
-                 data = etykieta.data,
-                 elementy = etykieta.elementy,
-                 element = etykieta.element,
-                 ilosc = etykieta.ilosc)
-        e.save()
-        return True
-    else:
-        return False
+    tura_index, created_tura = Tura.objects.get_or_create(nr = etykieta.tura, data = etykieta.data)
+    ta_index, created_ta = TA.objects.get_or_create(tura = tura_index, nr = etykieta.ta)
+    etykieta, created_e = Etykieta.objects.get_or_create(ta = ta_index, element = etykieta.element, pozycja = etykieta.pozycja, nr = etykieta.nr)
 
-def WyszukajIlosci(Etykieta_ta):
-    ilosc = []
-    Ta_dict = Etykieta.objects.filter(ta = Etykieta_ta).values('ta', 'element').annotate(Ilosci=Count('ta'))
+def WyszukajIlosci(TA_pelne):
+    ilosc = set()
+    Ta_dict = TA_pelne.etykieta_set.values('element').annotate(Ilosci=Count('element'))
     for row in Ta_dict:
-        ilosc.append(row['Ilosci'])
-    return min(ilosc)
+        if 'kiss' not in row['element'].lower() and 'steckr' not in row['element'].lower():
+            ilosc.add(row['Ilosci'])
+    if ilosc == set():
+        return 1
+    return max(ilosc)
 
-def UzupelnijStatus(Etykieta_ta):
-    try:
-        Status.objects.get(ta = Etykieta_ta)
-    except Exception as e:
-        a = Status()
-        a.ta = Etykieta_ta
-        a.ilosc = WyszukajIlosci(Etykieta_ta)
-        a.save()
+def UzupelnijStatus(TA_pelne):
+    ta_index, ta_created = Status.objects.get_or_create(ta = TA_pelne)
+    if ta_created:
+        ilosc = WyszukajIlosci(TA_pelne)
+        ta_index.szwalnia_ilosc = ilosc
+        ta_index.stolarnia_ilosc = ilosc
+        ta_index.tapicernia_ilosc =  ilosc
+        ta_index.save()
 
 for T, filenames in sorted(wyszukajPlikiPoDacie(main_path)):
     czytajPlikEtykiet(filenames)
 
-dodano = 0
-pominieto = 0
-
 for each in tablica_etykiet:
-    if dodaDoBazyDanych(each):
-        dodano += 1
-    else:
-        pominieto += 1        
-        
-print('ZAKONCZONO DODAWANIE ETYKIET...')
-print('GENEROWANIE STATUSOW....')
-for each in tablica_etykiet:
-    UzupelnijStatus(each.ta)
+    dodaDoBazyDanych(each)
 
-print('DODANO:', dodano)
-print('POMINIETO:', pominieto)
-print("--- %s seconds ---" % (time.time() - start_time))
+# print('ZAKONCZONO DODAWANIE ETYKIET...')
+# print("--- %s seconds ---" % (time.time() - start_time))
+# statusy_time = time.time()
+# print('GENEROWANIE STATUSOW....')
+
+for each in TA.objects.all():
+    UzupelnijStatus(each)
+    
+# print("--- %s seconds ---" % (statusy_time.time() - start_time))
+# print("--- %s seconds ---" % (time.time() - start_time))
