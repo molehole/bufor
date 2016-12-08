@@ -17,7 +17,7 @@ class TA(models.Model):
     zakonczone = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.nr, sefl.zakonczone)
+        return str(self.nr)
 
 # Create your models here.
 class Etykieta(models.Model):

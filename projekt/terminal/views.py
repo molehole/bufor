@@ -50,8 +50,8 @@ def szwalnia_status(request):
 	lista_kolejnosci = []
 	lista_dat = []
 	ordered_list = ()
-	for each in kolejnosc:				
-		tury = Tura.objects.get(nr = each.tura, data = each.data)		
+	for each in kolejnosc:
+		tury = Tura.objects.filter(nr = each.tura, data = each.data).first()
 		ilosci_pozostale = tury.ta_set.all().filter(zakonczone = True).count()
 		try:
 			procent = int((ilosci_pozostale/tury.ta_set.all().count())*100)

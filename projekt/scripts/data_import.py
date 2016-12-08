@@ -11,6 +11,10 @@ from django.db.models import Count
 # Timer
 start_time = time.time()
 
+# Glowna sciezka
+main_path = os.path.join('/', 'media', 'Etykiety_TXT')
+#main_path = '//jan-svr-nas01/domowy/Labeo/Planowanie/TXT/'
+
 # Zmienne
 elementy_regex = '(?<=\^FN921\^FD)(.*)(?=\^FS)'
 element_regex = '(?<=\^FN922\^FD)(.*)(?=\^FS)'
@@ -21,9 +25,6 @@ etykieta = '\^XF\S+.ZPL(.*?)\^FX End of job'
 
 tablica_etykiet = []
 tablica_kontrolna = []
-
-main_path = '//jan-svr-nas01/domowy/Labeo/Planowanie/TXT/'
-
 # domowa sciezka do wykasowania
 # main_path = os.path.join('d:','TXT')
 
@@ -141,13 +142,12 @@ for T, filenames in sorted(wyszukajPlikiPoDacie(main_path)):
 for each in tablica_etykiet:
     dodaDoBazyDanych(each)
 
-# print('ZAKONCZONO DODAWANIE ETYKIET...')
-# print("--- %s seconds ---" % (time.time() - start_time))
-# statusy_time = time.time()
-# print('GENEROWANIE STATUSOW....')
+print('ZAKONCZONO DODAWANIE ETYKIET...')
+print("--- %s seconds ---" % (time.time() - start_time))
+statusy_time = time.time()
+print('GENEROWANIE STATUSOW....')
 
 for each in TA.objects.all():
     UzupelnijStatus(each)
-    
-# print("--- %s seconds ---" % (statusy_time.time() - start_time))
-# print("--- %s seconds ---" % (time.time() - start_time))
+print("--- %s seconds ---" % (statusy_time.time() - start_time))
+print("--- %s seconds ---" % (time.time() - start_time))
